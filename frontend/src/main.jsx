@@ -4,7 +4,7 @@ import { Search, Bell, Home, BarChart3, Layers3, Bitcoin, Star, Clock3, X, Trash
 import { ResponsiveContainer, LineChart, Line, Tooltip, CartesianGrid, XAxis, YAxis, AreaChart, Area } from 'recharts';
 import './styles.css';
 
-const API='http://localhost:8000';
+const API='https://marketflow-api-bva0.onrender.com';
 const money=(n,d=2)=>n==null?'—':Number(n).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});
 const pct=n=>n==null?'—':`${Number(n)>=0?'+':''}${Number(n).toFixed(2)}%`;
 const nav=[['Home',Home],['Stocks',BarChart3],['Indices',Layers3],['Crypto',Bitcoin],['Watchlist',Star],['Alerts',Clock3]];
@@ -17,7 +17,7 @@ function App(){
  const [nseMarketStatus,setNseMarketStatus]=useState('OPEN');
  const [nseMarketReason,setNseMarketReason]=useState('');
  useEffect(()=>localStorage.setItem('mf-watchlist',JSON.stringify(watchlist)),[watchlist]);
- useEffect(()=>{fetch(`${API}/api/market`).then(r=>r.json()).then(setMarket).catch(()=>{});fetch(`${API}/api/alerts`).then(r=>r.json()).then(setAlerts).catch(()=>{});const ws=new WebSocket('ws://localhost:8000/ws/market');ws.onopen=()=>setConnected(true);ws.onclose=()=>setConnected(false);ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='snapshot'){setMarket(m.items||[]);setConnected(true)}if(m.type==='ticker')setMarket(prev=>{const i=prev.findIndex(x=>x.key===m.item.key);return i<0?[...prev,m.item]:prev.map((x,j)=>j===i?{...x,...m.item}:x)});if(m.type==='alert'){setToast(`🔔 ${m.item.name} crossed ${m.item.condition==='above'?'above':'below'} ₹${money(m.item.price)}`);fetch(`${API}/api/alerts`).then(r=>r.json()).then(setAlerts);setTimeout(()=>setToast(''),5000)}};return()=>ws.close()},[]);
+ useEffect(()=>{fetch(`${API}/api/market`).then(r=>r.json()).then(setMarket).catch(()=>{});fetch(`${API}/api/alerts`).then(r=>r.json()).then(setAlerts).catch(()=>{});const WS = new WebSocket('wss://marketflow-api-bva0.onrender.com/ws/market');ws.onopen=()=>setConnected(true);ws.onclose=()=>setConnected(false);ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='snapshot'){setMarket(m.items||[]);setConnected(true)}if(m.type==='ticker')setMarket(prev=>{const i=prev.findIndex(x=>x.key===m.item.key);return i<0?[...prev,m.item]:prev.map((x,j)=>j===i?{...x,...m.item}:x)});if(m.type==='alert'){setToast(`🔔 ${m.item.name} crossed ${m.item.condition==='above'?'above':'below'} ₹${money(m.item.price)}`);fetch(`${API}/api/alerts`).then(r=>r.json()).then(setAlerts);setTimeout(()=>setToast(''),5000)}};return()=>ws.close()},[]);
  useEffect(()=>{const q=query.trim();if(!q){setResults([]);return}let stop=false;const t=setTimeout(()=>fetch(`${API}/api/search?q=${encodeURIComponent(q)}`).then(r=>r.json()).then(x=>!stop&&setResults(x||[])).catch(()=>!stop&&setResults([])),220);return()=>{stop=true;clearTimeout(t)}},[query]);
  useEffect(()=>{
   fetch(`${API}/api/health`)
