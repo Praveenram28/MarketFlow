@@ -797,7 +797,7 @@ async def crypto_feed():
 
     )
 
-    url = f"wss://stream.binance.com:9443/stream?streams={streams}"
+    url = f"wss://data-stream.binance.vision/stream?streams={streams}"
 
     while True:
 
